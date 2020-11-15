@@ -17,14 +17,16 @@ FMapStruct AMapGeneratorGamemode::decodeMap(const FString& map)
 		FLevela level;
 		TArray<bool> points = TArray<bool>();
 
-		while (map[i] != '-' && map[i] != '/' && i < map.Len())
+		while (map[i] != '-' && map[i] != '/')
 		{
-			if (map[i] == '\n')
+			if (map[i] == '1')
 			{
-				i += 1;
-				continue;
+				points.Add(true);
 			}
-			points.Add(map[i] == '1');
+			if (map[i] == '0')
+			{
+				points.Add(false);
+			}
 			i += 1;
 		}
 
