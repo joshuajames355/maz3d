@@ -16,11 +16,10 @@ class MAZ3D_API UMyGameInstance : public UGameInstance
 {
     GENERATED_BODY()
 
-    ATcpConnection* connection;
-
     UFUNCTION(BlueprintCallable)
     void hostGame();
 
 public:
-    int playerCount;
+    UPROPERTY(BlueprintReadOnly)
+        ATcpConnection* connection;
 };

@@ -13,7 +13,10 @@ ATcpConnection::ATcpConnection()
 
 void ATcpConnection::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	RemoveFromRoot();
+	if (conid != -1)
+	{
+		Disconnect(conid);
+	}
 }
 
 void ATcpConnection::ConnectToGameServer() {
@@ -28,9 +31,30 @@ void ATcpConnection::ConnectToGameServer() {
 	connectDelegate.BindDynamic(this, &ATcpConnection::OnConnected);
 	FTcpSocketReceivedMessageDelegate receivedDelegate;
 	receivedDelegate.BindDynamic(this, &ATcpConnection::OnMessageReceived);
-	Connect("127.0.0.1", 46920, disconnectDelegate, connectDelegate, receivedDelegate, connectionIdGameServer);
+	Connect("192.168.1.171", 46920, disconnectDelegate, connectDelegate, receivedDelegate, connectionIdGameServer);
 	waitingForPC = false;
 	conid = -1;
+	pc = 0;
+}
+
+TArray<uint8> toArray(FString string)
+{
+	TArray<uint8> test = TArray<uint8>();
+	for (int x = 0; x < string.Len(); x++)
+	{
+		test.Add(string[x]);
+	}
+	return test;
+}
+
+FString fromArray(TArray<uint8> data)
+{
+	FString test = "";
+	for (int x = 0; x < data.Num(); x++)
+	{
+		test += char(data[x]);
+	}
+	return test;
 }
 
 void ATcpConnection::Tick(float DeltaTime)
@@ -40,14 +64,7 @@ void ATcpConnection::Tick(float DeltaTime)
 	if (!waitingForPC && conid != -1)
 	{
 		UE_LOG(LogTemp, Log, TEXT("SEND"));
-		TArray<uint8> data;
-		data.AddZeroed(3);
-		FString string = "?PC";
-
-
-		memcpy(&data, TCHAR_TO_ANSI(*string), 3);
-		SendData(conid, data);
-
+		SendData(conid, toArray("?$"));
 		waitingForPC = true;
 	}
 }
@@ -68,20 +85,53 @@ void ATcpConnection::OnMessageReceived(int32 ConId, TArray<uint8>& Message) {
 	// In this example, we always encode messages a certain way:
 	// The first 4 bytes contain the length of the rest of the message.
 	while (Message.Num() != 0) {
-		// read expected length
-		int32 msgLength = Message_ReadInt(Message);
-		if (msgLength == -1) // when we can't read 4 bytes, the method returns -1
-			return;
-		TArray<uint8> yourMessage;
-		// read the message itself
-		if (!Message_ReadBytes(msgLength, Message, yourMessage)) {
-			// If it couldn't read expected number of bytes, something went wrong.
-			// Print a UE_LOG here, while your project is in development.
-			continue;
+
+		FString message = "";
+		uint8 byte = Message_ReadByte(Message);
+		while (byte != '$')
+		{
+			message += char(byte);
+			byte = Message_ReadByte(Message);
 		}
+
+		if (message.StartsWith("?"))
+		{
+			FString split = message.RightChop(1);
+			UE_LOG(LogTemp, Log, TEXT("split %s"), *split);
+			pc = FCString::Atoi(*split);
+			waitingForPC = false;
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("message %s") , *message);
+
 		// If the message was read, then treat "yourMessage" here!
 		// ...
 		// And then we go back to the "while", because we may have received multiple messages in a frame, 
 		// so they all have to be read.
+	}
+}
+
+void ATcpConnection::sendPosition(float x, float y, float z, float angle)
+{
+	if(conid != -1)
+	{
+		FString data = "#{\"x\":" + FString::SanitizeFloat(x) + ", \"y\" : " + FString::SanitizeFloat(y) + ",\"world\" : " + FString::SanitizeFloat(z) + ", \"rotation\": " + FString::SanitizeFloat(angle) + "}$";
+		SendData(conid, toArray(data));
+	}
+}
+
+void ATcpConnection::sendString(FString data)
+{
+	if (conid != -1)
+	{
+		SendData(conid, toArray(data));
+	}
+}
+
+void ATcpConnection::sendMap(FString map)
+{
+	if (conid != -1)
+	{
+		SendData(conid, toArray("!" + map));
 	}
 }

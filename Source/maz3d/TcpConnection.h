@@ -20,6 +20,9 @@ class MAZ3D_API ATcpConnection : public ATcpSocketConnection
 public:
 	ATcpConnection();
 
+	UPROPERTY(BlueprintReadOnly)
+		int32 pc;
+
 	UFUNCTION()
 		void OnConnected(int32 ConnectionId);
 
@@ -31,6 +34,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void ConnectToGameServer();
+
+	UFUNCTION(BlueprintCallable)
+		void sendPosition(float x, float y, float z, float angle);
+
+	UFUNCTION(BlueprintCallable)
+		void sendString(FString data);
+
+	UFUNCTION(BlueprintCallable)
+		void sendMap(FString map);
 
 	UPROPERTY()
 		int32 connectionIdGameServer;
