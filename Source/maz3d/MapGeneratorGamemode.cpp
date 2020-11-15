@@ -50,30 +50,79 @@ FMapStruct AMapGeneratorGamemode::decodeMap(const FString& map)
 		FPortalPair pair;
 
 		in.maze = map[i] - 48;
-
-		i += 2;
-		in.x = map[i] - 48;
-
-		i += 2;
-		in.y = map[i] - 48;
-
-		i += 2;
-		in.rot = map[i] - 48;
-
-		i += 2;
-		out.maze = map[i] - 48;
-
-		i += 2;
-		out.x = map[i] - 48;
-
-		i += 2;
-		out.y = map[i] - 48;
-
-		i += 2;
-		out.rot = map[i] - 48;
-
 		i += 1;
-		while (i< map.Len() && map[i] == '\n' || map[i] == '\r') i += 1;
+		while (map[i] != ',')
+		{
+			in.maze = in.maze*10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		in.x = map[i] - 48;
+		i += 1;
+		while (map[i] != ',')
+		{
+			in.x = in.x * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		in.y = map[i] - 48;
+		i += 1;
+		while (map[i] != ',')
+		{
+			in.y = in.y * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		in.rot = map[i] - 48;
+		i += 1;
+		while (map[i] != '-')
+		{
+			in.rot = in.rot * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+
+
+		out.maze = map[i] - 48;
+		i += 1;
+		while (map[i] != ',')
+		{
+			out.maze = out.maze * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		out.x = map[i] - 48;
+		i += 1;
+		while (map[i] != ',')
+		{
+			out.x = out.x * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		out.y = map[i] - 48;
+		i += 1;
+		while (map[i] != ',')
+		{
+			out.y = out.y * 10 + map[i] - 48;
+			i += 1;
+		}
+		i += 1;
+
+		out.rot = map[i] - 48;
+		i += 1;
+		while(i < map.Len() && map[i] != '\n' && map[i] != '\r')
+		{
+			out.rot = out.rot * 10 + map[i] - 48;
+			i += 1;
+		}
+
+		while (map[i] != '\n' && map[i] != '\r') i += 1;
 
 		pair.out = out;
 		pair.in = in;
